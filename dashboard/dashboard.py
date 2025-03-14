@@ -35,7 +35,7 @@ start_date, end_date = st.sidebar.date_input("Rentang Waktu", [min_date, max_dat
 
 main_df = all_df[(all_df["dteday_x"] >= pd.Timestamp(start_date)) & (all_df["dteday_x"] <= pd.Timestamp(end_date))]
 
-st.header('Bike_Sharing Dashboard 🚲')
+st.header('Bike-Sharing Dashboard 🚲')
 
 st.subheader("Daily Rentals")
 daily_orders_df = create_daily_orders_df(main_df)
