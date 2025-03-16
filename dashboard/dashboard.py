@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
-from babel.numbers import format_currency
 
 sns.set(style='dark')
 
@@ -29,11 +28,15 @@ all_df = pd.read_csv("dashboard/main_data.csv")
 all_df["dteday_x"] = pd.to_datetime(all_df["dteday_x"])
 all_df.sort_values(by="dteday_x", inplace=True)
 
+# Sidebar - Filter interaktif
 st.sidebar.image("https://github.com/MidoriyaTenten/PicturesExample/blob/main/bikesharinglogo.png?raw=true")
 min_date, max_date = all_df["dteday_x"].min(), all_df["dteday_x"].max()
 start_date, end_date = st.sidebar.date_input("Rentang Waktu", [min_date, max_date], min_value=min_date, max_value=max_date)
+selected_season = st.sidebar.selectbox("Pilih Musim", ['All'] + list(set(all_df['season_x'])))
 
 main_df = all_df[(all_df["dteday_x"] >= pd.Timestamp(start_date)) & (all_df["dteday_x"] <= pd.Timestamp(end_date))]
+if selected_season != 'All':
+    main_df = main_df[main_df['season_x'] == selected_season]
 
 st.header('Bike-Sharing Dashboard 🚲')
 
@@ -46,7 +49,10 @@ col2.metric("Total Users", value=daily_orders_df["total_users"].sum())
 st.subheader('Seasonal Bike-Sharing Trends')
 seasonal_users_df = create_seasonal_users_df(main_df)
 fig, ax = plt.subplots()
-ax.pie(seasonal_users_df['Users'], labels=seasonal_users_df['Season'], autopct='%1.1f%%', colors=['#D2691E', '#FFD700', '#00FF7F', '#ADD8E6'], explode=[0.1, 0, 0, 0])
+explode_values = [0.1] + [0] * (len(seasonal_users_df) - 1)  # Sesuaikan panjangnya
+ax.pie(seasonal_users_df['Users'], labels=seasonal_users_df['Season'], autopct='%1.1f%%', 
+       colors=['#D2691E', '#FFD700', '#00FF7F', '#ADD8E6'][:len(seasonal_users_df)], explode=explode_values)
+
 st.pyplot(fig)
 
 st.subheader("Monthly Bike-Sharing Trends")
