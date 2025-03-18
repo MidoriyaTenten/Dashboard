@@ -6,10 +6,16 @@ import streamlit as st
 sns.set(style='dark')
 
 SEASON_MAPPING = {1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'}
+MONTH_MAPPING = {
+    "January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
+    "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
+}
+
 
 def create_seasonal_users_df(df):
     df['season_x'] = df['season_x'].map(SEASON_MAPPING)
     return df.groupby('season_x')['cnt_x'].sum().reset_index().rename(columns={'season_x': 'Season', 'cnt_x': 'Users'})
+
 
 def create_monthly_users_df(df):
     month_mapping = {
@@ -17,13 +23,19 @@ def create_monthly_users_df(df):
         7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'
     }
     df['mnth_x'] = df['mnth_x'].map(month_mapping)
-    return df.groupby('mnth_x')['cnt_x'].sum().reset_index().rename(columns={'mnth_x': 'Month', 'cnt_x': 'Users'})
+    monthly_df = df.groupby('mnth_x')['cnt_x'].sum().reset_index().rename(columns={'mnth_x': 'Month', 'cnt_x': 'Users'})
+    monthly_df['MonthOrder'] = monthly_df['Month'].map(MONTH_MAPPING)  
+    monthly_df = monthly_df.sort_values(by='MonthOrder')  
+    monthly_df.drop(columns=['MonthOrder'], inplace=True)  
+    return monthly_df
+
 
 def create_daily_orders_df(df):
     df['dteday_x'] = pd.to_datetime(df['dteday_x'])
     daily_orders_df = df.resample(rule='D', on='dteday_x').agg({"cnt_x": "sum"}).reset_index()
     daily_orders_df.rename(columns={"cnt_x": "total_users"}, inplace=True)
     return daily_orders_df
+
 
 all_df = pd.read_csv("dashboard/main_data.csv")
 all_df["dteday_x"] = pd.to_datetime(all_df["dteday_x"])
